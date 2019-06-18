@@ -11,7 +11,7 @@ const express = require('express'),
 app.use(middleware)
 
 //cors middleware
-app.use(cors({origin: "*"}))
+app.use(cors({origin: "http://localhost"}))
 
 //body-parser middleware
 app.use(bodyParser.urlencoded({ extended: true }))

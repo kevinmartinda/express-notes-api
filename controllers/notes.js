@@ -11,7 +11,7 @@ exports.index = (req, res) => {
 }
 
 exports.findAll = (req, res) => {
-	conn.query('SELECT * FROM notes', (err, rows, field) => {
+	conn.query('SELECT * FROM v_notes', (err, rows, field) => {
 		if (err) {
 			throw err
 		} else {
@@ -22,7 +22,7 @@ exports.findAll = (req, res) => {
 
 exports.find = (req, res) => {
 	const id = req.params.id
-	conn.query('SELECT * FROM notes WHERE id = ?', [id], (err, rows, field) => {
+	conn.query('SELECT * FROM v_notes WHERE id = ?', [id], (err, rows, field) => {
 		if(err) {
 			throw err
 		} else {
