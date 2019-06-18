@@ -5,13 +5,13 @@ const express = require('express'),
 	  routes = require('./routes'),
 	  bodyParser = require('body-parser'),
 	  middleware = require('./middleware'),
-	  cors = require('./cors')
-
-//cors middleware	  
-app.use(cors)
+	  cors = require('cors')
 
 //log middleware
 app.use(middleware)
+
+//cors middleware
+app.use(cors({origin: "*"}))
 
 //body-parser middleware
 app.use(bodyParser.urlencoded({ extended: true }))
