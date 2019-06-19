@@ -11,7 +11,46 @@ exports.index = (req, res) => {
 }
 
 exports.findAll = (req, res) => {
-	conn.query('SELECT * FROM v_notes', (err, rows, field) => {
+	var {search, sort, page} = req.query
+
+	let sql = "SELECT * FROM v_notes"
+	const param = []
+
+	if(search){
+		search = `%${search}%`
+		sql += " WHERE title like ?"
+		param.push(search)
+	}
+
+	if(sort){
+		switch(sort){
+			case 'ASC':
+				sql += " ORDER BY id ASC"
+			break
+			case 'DESC':
+				sql += " ORDER BY id DESC"
+			break
+			default: 
+				sql += ""
+		}
+	}
+
+	if(page){
+		let numPage = parseInt(page)
+		let start = 0
+		let limit = 10
+		if(numPage > 1){
+			start = (numPage * limit) - limit
+		}
+		sql += " LIMIT ?, ?"
+		param.push(start, limit)
+		console.log(start, limit)
+	}
+
+	console.log(sql)
+	conn.query(sql, param, (err, rows, field) => {
+		console.log(sql)
+		console.log(param)
 		if (err) {
 			throw err
 		} else {
