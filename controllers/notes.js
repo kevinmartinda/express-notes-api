@@ -16,12 +16,14 @@ exports.findAll = (req, res) => {
 	let sql = "SELECT * FROM v_notes"
 	const param = []
 
+	//Check if there is 'search' query string
 	if(search){
 		search = `%${search}%`
 		sql += " WHERE title like ?"
 		param.push(search)
 	}
 
+	//Check if there is 'sort' query string
 	if(sort){
 		switch(sort){
 			case 'ASC':
@@ -35,6 +37,7 @@ exports.findAll = (req, res) => {
 		}
 	}
 
+	//Check if there is 'page' query string
 	if(page){
 		let numPage = parseInt(page)
 		let start = 0
