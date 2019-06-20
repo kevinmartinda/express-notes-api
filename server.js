@@ -13,19 +13,19 @@ app.use((req, res, next) => {
 	next()
 })
 
-//cors middleware
-const whitelist = ['http://localhost', 'http://localhost:4200']
-app.use(
-	cors({origin: (origin, callback) => {
-		console.log(origin)
-		if(whitelist.indexOf(origin) !== -1 || origin === undefined){
-			callback(null, true)
-		} else {
-			callback(new Error('Not allowed by server..'))
-		}
-	}
-	})
-)
+// cors middleware
+// const whitelist = ['http://localhost', 'http://localhost:4200']
+// app.use(
+// 	cors({origin: (origin, callback) => {
+// 		console.log(origin)
+// 		if(whitelist.indexOf(origin) !== -1 || origin === undefined){
+// 			callback(null, true)
+// 		} else {
+// 			callback(new Error('Not allowed by server..'))
+// 		}
+// 	}
+// 	})
+// )
 
 //body-parser middleware
 app.use(bodyParser.urlencoded({ extended: true }))

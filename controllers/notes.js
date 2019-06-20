@@ -2,6 +2,7 @@
 
 const response = require('./response')
 const conn = require('../connection')
+const library = require('../lib')
 
 exports.index = (req, res) => {
 	res.json({
@@ -11,53 +12,42 @@ exports.index = (req, res) => {
 }
 
 exports.findAll = (req, res) => {
-	var {search, sort, page} = req.query
+	var {limit, page} = req.query
+	const {sql, param} = library.searching(req, 'v_notes')
 
-	let sql = "SELECT * FROM v_notes"
-	const param = []
-
-	//Check if there is 'search' query string
-	if(search){
-		search = `%${search}%`
-		sql += " WHERE title like ?"
-		param.push(search)
-	}
-
-	//Check if there is 'sort' query string
-	if(sort){
-		switch(sort){
-			case 'ASC':
-				sql += " ORDER BY id ASC"
-			break
-			case 'DESC':
-				sql += " ORDER BY id DESC"
-			break
-			default: 
-				sql += ""
+	var total = 0
+	
+	if(!limit)
+		limit = 10
+	if(!page)
+		page = 1
+	
+	
+	library.countTotal(req, (err, content) => {
+		if (err) {
+			console.log(err);
+			throw err
+		} else {
+			total = content;
 		}
-	}
+	});
 
-	//Check if there is 'page' query string
-	if(page){
-		let numPage = parseInt(page)
-		let start = 0
-		let limit = 10
-		if(numPage > 1){
-			start = (numPage * limit) - limit
-		}
-		sql += " LIMIT ?, ?"
-		param.push(start, limit)
-		console.log(start, limit)
-	}
-
-	console.log(sql)
 	conn.query(sql, param, (err, rows, field) => {
-		console.log(sql)
-		console.log(param)
+		page = parseInt(page)
+		
+		const totalPage = Math.ceil(total / limit)
+
 		if (err) {
 			throw err
 		} else {
-			response.ok(rows, res)
+			res.json({
+				status: 200,
+				data: rows,
+				total,
+				page,
+				totalPage,
+				limit
+			})
 		}
 	})
 }
