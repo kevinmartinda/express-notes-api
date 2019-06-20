@@ -7,19 +7,19 @@ module.exports = app => {
 	//GET
 	app.get('/', notesController.index)
 	app.get('/notes', notesController.findAll)
-	app.get('/note/:id', notesController.find)
+	app.get('/notes/:id', notesController.find)
 	app.get('/categories', categoriesController.findAll)
-	app.get('/category/:id', categoriesController.find)
+	app.get('/categories/:id', categoriesController.find)
 
 	//POST
-	app.post('/note', notesController.create)
-	app.post('/category', categoriesController.create)
+	app.post('/notes', notesController.create)
+	app.post('/categories', categoriesController.create)
 
 	//PATCH
-	app.patch('/note/:id', notesController.update)
-	app.patch('/category/:id', categoriesController.update)
+	app.patch('/notes/:id', notesController.update)
+	app.patch('/categories/:id', categoriesController.update)
 
 	//DELETE
-	app.delete('/note/:id', notesController.delete)
-	app.delete('/category/:id', categoriesController.delete)
+	app.delete('/notes/:id', notesController.delete)
+	app.delete('/categories/:id', categoriesController.delete)
 }
