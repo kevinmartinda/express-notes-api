@@ -34,20 +34,27 @@ exports.findAll = (req, res) => {
 
 	conn.query(sql, param, (err, rows, field) => {
 		page = parseInt(page)
-		
+		limit = parseInt(limit)
 		const totalPage = Math.ceil(total / limit)
 
 		if (err) {
 			throw err
 		} else {
-			res.json({
-				status: 200,
-				data: rows,
-				total,
-				page,
-				totalPage,
-				limit
-			})
+			if(page > totalPage){
+				res.json({
+					status: 404,
+					message: "Not found :("
+				})
+			} else {
+				res.json({
+					status: 200,
+					data: rows,
+					total,
+					page,
+					totalPage,
+					limit
+				})
+			}
 		}
 	})
 }

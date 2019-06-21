@@ -8,7 +8,7 @@ module.exports = app => {
 
 	//GET
 	app.get('/', notesController.index)
-	app.get('/notes', cors({origin: '*'}), notesController.findAll)
+	app.get('/notes', notesController.findAll)
 	app.get('/notes/:id', notesController.find)
 	app.get('/categories', categoriesController.findAll)
 	app.get('/categories/:id', categoriesController.find)
