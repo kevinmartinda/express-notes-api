@@ -58,24 +58,14 @@ exports.searching = (req, table) => {
     return {sql, param}
 }
 
-exports.countTotal = (req, callback) => {
+exports.countTotal = (callback) => {
 	const conn = require('./connection')
-	var {search} = req.query 
-	const param = []
-
-	var result = 0
 
 	let sql = `SELECT COUNT(*) as count FROM v_notes` 
 
-	if(search){
-		search = `%${search}%`
-		sql += " WHERE title like ?"
-		param.push(search)
-	}
-
-	conn.query(sql, param, (err, rows, field) => {
+	conn.query(sql, (err, rows, field) => {
 		let res = parseInt(rows[0].count)
-		result += res
+		const result = res
 		callback(null, result)
 	})
 }

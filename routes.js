@@ -10,6 +10,7 @@ module.exports = app => {
 	app.get('/', notesController.index)
 	app.get('/notes', notesController.findAll)
 	app.get('/notes/:id', notesController.find)
+	app.get('/notes-category/:categoryId', notesController.findNotesByCategory)
 	app.get('/categories', categoriesController.findAll)
 	app.get('/categories/:id', categoriesController.find)
 

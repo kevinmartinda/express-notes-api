@@ -1,8 +1,8 @@
 'use strict'
 
 const response = require('./response')
-const conn = require('../connection')
-const library = require('../lib')
+const model = require('../models')
+const Sequelize = require('sequelize')
 
 exports.index = (req, res) => {
 	res.json({
@@ -11,102 +11,164 @@ exports.index = (req, res) => {
 	})
 }
 
-exports.findAll = (req, res) => {
-	var {limit, page} = req.query
-	const {sql, param} = library.searching(req, 'v_notes')
+exports.findAll = async (req, res) => {
+	var {limit, page, sort, search} = req.query
+	const param = {include: [{model: model.Category, as: 'Category', attributes: ['id','name']}]}
 
-	var total = 0
-	
-	if(!limit)
-		limit = 10
-	if(!page)
-		page = 1
-	
-	
-	library.countTotal(req, (err, content) => {
-		if (err) {
-			console.log(err);
-			throw err
-		} else {
-			total = content;
-		}
-	});
+	let start = 0
 
-	conn.query(sql, param, (err, rows, field) => {
-		page = parseInt(page)
-		limit = parseInt(limit)
-		const totalPage = Math.ceil(total / limit)
+	limit ? limit = parseInt(limit) : limit = 10
+	page ? page = parseInt(page) : page = 1
+	sort ? sort.toUpperCase() : sort = 'DESC'
+		
+	if (search){
+		search = `%${search}%`
+		param.where = {
+			title: {[Sequelize.Op.like]: search}}
+	}
 
-		if (err) {
-			throw err
-		} else {
-			if(page > totalPage){
-				res.json({
-					status: 404,
-					message: "Not found :("
-				})
-			} else {
-				res.json({
-					status: 200,
-					data: rows,
-					total,
-					page,
-					totalPage,
-					limit
-				})
-			}
-		}
+	if(page > 1){
+		start = (page * limit) - limit
+	} 
+
+	param.limit = parseInt(limit)
+	param.offset = parseInt(start)
+	param.order = [['updatedAt', sort]]
+	param.direction = 'DESC'
+
+	console.log(param)
+	let total = 0
+
+	console.log(total)
+	model.Note.findAndCountAll(param).then(rows => {
+		res.json({
+			status: 200,
+			values: rows.rows,
+			total: rows.count,
+			page,
+			totalPage: Math.ceil(rows.count / limit),
+			limit
+
+		})
+	}).catch(err => {
+		console.log(err)
 	})
+	
 }
 
 exports.find = (req, res) => {
 	const id = req.params.id
-	conn.query('SELECT * FROM v_notes WHERE id = ?', [id], (err, rows, field) => {
-		if(err) {
-			throw err
-		} else {
-			response.ok(rows, res)
-		}
+	model.Note.findByPk(id, {include: 'Category'})
+	  .then(row => {
+		response.ok(row, res)
+	  }).catch(err => {
+		console.log(err)
+	  })
+}
+
+exports.findNotesByCategory = (req, res) => {
+	const id = req.params.categoryId
+	var {limit, page, sort, search} = req.query
+	const param = {include: [{model: model.Category, as: 'Category', attributes: ['id','name']}]}
+
+	let start = 0
+
+	limit ? limit = parseInt(limit) : limit = 10
+	page ? page = parseInt(page) : page = 1
+	sort ? sort.toUpperCase() : sort = 'DESC'
+		
+	if (search){
+		search = `%${search}%`
+		param.where = {
+			title: {[Sequelize.Op.like]: search}}
+	}
+
+	if(page > 1){
+		start = (page * limit) - limit
+	}
+	 
+
+	param.limit = parseInt(limit)
+	param.offset = parseInt(start)
+	param.order = [['updatedAt', sort]]
+	param.direction = 'DESC'
+	param.where = {
+		categoryId: id
+	}
+
+	console.log(param)
+	let total = 0
+
+	console.log(total)
+	model.Note.findAndCountAll(param).then(rows => {
+		res.json({
+			status: 200,
+			values: rows.rows,
+			total: rows.count,
+			page,
+			totalPage: Math.ceil(rows.count / limit),
+			limit
+
+		})
+	}).catch(err => {
+		console.log(err)
 	})
 }
 
 exports.create = (req, res) => {
-	const { title, note, idCategory } = req.body
+	const { title, note, categoryId } = req.body
 
-	conn.query('INSERT INTO notes VALUES (null, ?, ?, ?, now())', 
-		[title, note, idCategory], (err, rows, fields) => {
-			if (err) {
-				throw err
-			} else {
-				response.ok("Note created!", res)
-			}
+	model.Note.create({
+		title,
+		note,
+		categoryId,
+		createdAt: 'now()',
+		updatedAt: 'now()'
+	}).then((result) => (
+		result.id
+	)).then((id) => {
+		model.Note.findByPk(id, {include: 'Category'})
+		.then(row => {
+			response.ok(row, res)
+		}).catch(err => {
+			console.log(err)
 		})
+	}).catch(err => {
+		console.log(err)
+	})
 
 }
 
 exports.update = (req, res) => {
 	const id = req.params.id
-	const { title, note, idCategory } =  req.body 
+	const { title, note, categoryId } =  req.body 
 
-	conn.query('UPDATE notes SET title = ?, note = ?, categoryId = ?, time = now() WHERE id = ?', 
-		[title, note, idCategory, id], (err, rows, fields) => {
-			if (err) {
-				throw err
-			} else {
-				response.ok("Note updated!", res)
-			}
+	model.Note.update({title, note, categoryId}, {where: {id}})
+	.then(result => (
+		model.Note.findByPk(id, {include: 'Category'})
+		.then(row => {
+			console.log(row)
+			response.ok(row, res)
+		}).catch(err => {
+			console.log(err)
 		})
+	)).catch(err => {
+		console.log(err)
+	})
 
 }
 
 exports.delete = (req, res) => {
 	const id = req.params.id
-	conn.query('DELETE FROM notes WHERE id = ?', [id], (err, rows, field) => {
-		if(err) {
-			throw err
-		} else {
-			response.ok("Note deleted!", res)
-		}
+	
+	model.Note.destroy({
+		where: {id}
+	})
+	.then((result) => {
+		response.ok(id, res)
+	})
+	.catch(err => {
+		console.log(err)
 	})
 }
 

@@ -1,7 +1,7 @@
 'use strict'
 
 const response = require('./response')
-const conn = require('../connection')
+const model = require('../models')
 
 exports.index = (req, res) => {
 	res.json({
@@ -11,62 +11,59 @@ exports.index = (req, res) => {
 }
 
 exports.findAll = (req, res) => {
-	conn.query('SELECT * FROM categories', (err, rows, field) => {
-		if (err) {
-			throw err
-		} else {
-			response.ok(rows, res)
-		}
+	model.Category.findAll().then(rows => {
+		response.ok(rows, res)
 	})
 }
 
 exports.find = (req, res) => {
 	const id = req.params.id
-	conn.query('SELECT * FROM categories WHERE id = ?', [id], (err, rows, field) => {
-		if(err) {
-			throw err
-		} else {
-			response.ok(rows, res)
-		}
-	})
+	model.Category.findByPk(id)
+	  .then(row => {
+		response.ok(row, res)
+	  }).catch(err => {
+		console.log(err)
+	  })
 }
 
 exports.create = (req, res) => {
-	const name = req.body.name
+	const { name, url } = req.body
 
-	conn.query('INSERT INTO categories VALUES (null, ?)', 
-		[name], (err, rows, fields) => {
-			if (err) {
-				throw err
-			} else {
-				response.ok("Category added!", res)
-			}
-		})
+	model.Category.create({
+		name,
+		url
+	}).then(result => {
+		response.ok(result, res)
+	}).catch(err => {
+		console.log(err)
+	})
 
 }
 
 exports.update = (req, res) => {
 	const id = req.params.id
-	const name =  req.body.name 
+	const { name } =  req.body 
 
-	conn.query('UPDATE categories SET name = ? WHERE id = ?', 
-		[title, note, idCategory, id], (err, rows, fields) => {
-			if (err) {
-				throw err
-			} else {
-				response.ok("CAtegory updated!", res)
-			}
-		})
+	model.Category.update({name}, {where: {id}})
+	.then(result => {
+		response.ok(result, res)
+	})
+	.catch(err => {
+		console.log(err)
+	})
 
 }
 
 exports.delete = (req, res) => {
 	const id = req.params.id
-	conn.query('DELETE FROM categories WHERE id = ?', [id], (err, rows, field) => {
-		if(err) {
-			throw err
-		} else {
-			response.ok("Category deleted!", res)
-		}
+	
+	model.Category.destroy({
+		where: {id}
+	})
+	.then(() => {
+		response.ok(id, res)
+	})
+	.catch(err => {
+		console.log(err)
 	})
 }
